@@ -43,25 +43,25 @@ async def claim_agent(client, url: str) -> claim_result:
     # Parse the JSON output into your Pydantic model
     return claim_result.model_validate_json(result.final_output)
 
-async def main():
-    url = input("Provide URL to analyze: ")
-    client = AsyncDedalus()
+# async def main():
+#     url = input("Provide URL to analyze: ")
+#     client = AsyncDedalus()
     
-    # Run the agent
-    result = await claim_agent(client, url)  
+#     # Run the agent
+#     result = await claim_agent(client, url)  
     
-    # Print results in clean format
-    print("Claim Analysis Results")
-    print(f"\n📍 Central Claim:")
-    print(f"   {result.central_claim}")
-    print(f" Summary:")
-    print(f"   {result.summary}")
-    print(f" Scores:")
-    print(f"   Overall Score: {result.overall_score}/100")
-    print(f"   Confidence Score: {result.confidence_score}/100")
+#     # Print results in clean format
+#     print("Claim Analysis Results")
+#     print(f"\n📍 Central Claim:")
+#     print(f"   {result.central_claim}")
+#     print(f" Summary:")
+#     print(f"   {result.summary}")
+#     print(f" Scores:")
+#     print(f"   Overall Score: {result.overall_score}/100")
+#     print(f"   Confidence Score: {result.confidence_score}/100")
     
-    return result
+#     return result
 
-if __name__ == "__main__":
-    print("Running claim_check.py")
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     print("Running claim_check.py")
+#     asyncio.run(main())

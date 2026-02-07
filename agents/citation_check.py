@@ -55,33 +55,33 @@ async def citation_check_agent(client: AsyncDedalus, url: str) -> CitationResult
     return citation_result
 
 
-async def main():
-    url = input("Provide URL of academic paper to check citations: ")
-    client = AsyncDedalus()
-    result = await citation_check_agent(client, url)
+# async def main():
+#     url = input("Provide URL of academic paper to check citations: ")
+#     client = AsyncDedalus()
+#     result = await citation_check_agent(client, url)
 
-    print("\n📚 Citation Check Results")
-    print(f"   Overall Score: {result.overall_score}/100")
-    print(f"   Confidence: {result.confidence_score}/100")
-    print(f"   Total Citations: {result.total_citations_found}")
-    print(f"   Verified: {result.verified_citations} | Unverified: {result.unverified_citations}")
-    print(f"   Peer-Reviewed: {result.peer_reviewed_count}")
-    print(f"   Self-Citations: {result.self_citation_count}")
-    if result.avg_citation_age_years is not None:
-        print(f"   Avg Citation Age: {result.avg_citation_age_years:.1f} years")
-    if result.broken_links:
-        print(f"   ⚠️  Broken Links: {len(result.broken_links)}")
-    if result.flagged_citations:
-        print(f"   🚩 Flagged Citations: {len(result.flagged_citations)}")
-    print(f"\n   Summary: {result.summary}")
-    if result.recommendations:
-        print("\n   Recommendations:")
-        for rec in result.recommendations:
-            print(f"     • {rec}")
+#     print("\n📚 Citation Check Results")
+#     print(f"   Overall Score: {result.overall_score}/100")
+#     print(f"   Confidence: {result.confidence_score}/100")
+#     print(f"   Total Citations: {result.total_citations_found}")
+#     print(f"   Verified: {result.verified_citations} | Unverified: {result.unverified_citations}")
+#     print(f"   Peer-Reviewed: {result.peer_reviewed_count}")
+#     print(f"   Self-Citations: {result.self_citation_count}")
+#     if result.avg_citation_age_years is not None:
+#         print(f"   Avg Citation Age: {result.avg_citation_age_years:.1f} years")
+#     if result.broken_links:
+#         print(f"   ⚠️  Broken Links: {len(result.broken_links)}")
+#     if result.flagged_citations:
+#         print(f"   🚩 Flagged Citations: {len(result.flagged_citations)}")
+#     print(f"\n   Summary: {result.summary}")
+#     if result.recommendations:
+#         print("\n   Recommendations:")
+#         for rec in result.recommendations:
+#             print(f"     • {rec}")
 
-    return result
+#     return result
 
 
-if __name__ == "__main__":
-    print("Running citation_check.py")
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     print("Running citation_check.py")
+#     asyncio.run(main())

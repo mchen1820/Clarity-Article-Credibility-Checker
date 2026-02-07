@@ -6,6 +6,7 @@ from base_res_class import BaseAgentResult
 import os
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 class BiasIndicator(BaseModel):
@@ -28,6 +29,7 @@ async def bias_check_agent(client: AsyncDedalus, url: str) -> BiasCheckResult:
         input=f"""
 Analyze the article at the following URL for linguistic bias:
 {url}
+
 
 Perform a structured bias analysis using ONLY the article text.
 Do NOT fact-check.
@@ -104,35 +106,35 @@ Output requirements:
 
     return BiasCheckResult.model_validate_json(result.final_output)
 
-async def main():
-    url = input("Provide URL to analyze for bias: ")
-    client = AsyncDedalus()
-    result = await bias_check_agent(client, url)
+# async def main():
+#     url = input("Provide URL to analyze for bias: ")
+#     client = AsyncDedalus()
+#     result = await bias_check_agent(client, url)
 
-    print("\n🧭 Bias Check Results")
-    print(f"   Overall Bias Score: {result.overall_score}/100")
-    print(f"   Bias Level: {result.bias_level}")
-    print(f"   Dominant Tone: {result.dominant_tone}")
-    print(f"   Confidence: {result.confidence_score}/100")
-    print(f"\n   Summary: {result.summary}")
+#     print("\n🧭 Bias Check Results")
+#     print(f"   Overall Bias Score: {result.overall_score}/100")
+#     print(f"   Bias Level: {result.bias_level}")
+#     print(f"   Dominant Tone: {result.dominant_tone}")
+#     print(f"   Confidence: {result.confidence_score}/100")
+#     print(f"\n   Summary: {result.summary}")
 
-    if result.key_indicators:
-        print("\n   Key Bias Indicators:")
-        for ind in result.key_indicators:
-            print(f"     • [{ind.indicator_type}] {ind.example_text}")
+#     if result.key_indicators:
+#         print("\n   Key Bias Indicators:")
+#         for ind in result.key_indicators:
+#             print(f"     • [{ind.indicator_type}] {ind.example_text}")
 
-    if result.affected_topics:
-        print("\n   Affected Topics:")
-        for topic in result.affected_topics:
-            print(f"     • {topic}")
+#     if result.affected_topics:
+#         print("\n   Affected Topics:")
+#         for topic in result.affected_topics:
+#             print(f"     • {topic}")
 
-    if result.recommendations:
-        print("\n   Recommendations:")
-        for rec in result.recommendations:
-            print(f"     • {rec}")
+#     if result.recommendations:
+#         print("\n   Recommendations:")
+#         for rec in result.recommendations:
+#             print(f"     • {rec}")
 
-    return result
+#     return result
 
-if __name__ == "__main__":
-    print("Running bias_check.py")
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     print("Running bias_check.py")
+#     asyncio.run(main())
