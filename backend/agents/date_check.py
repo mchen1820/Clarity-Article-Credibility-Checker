@@ -17,13 +17,16 @@ class DateResult(BaseAgentResult):
 	date: Optional[str] = Field(None)
 	relevance: Optional[str] = Field(None)
 
-async def date_check_agent(client: AsyncDedalus, article:str) -> DateResult:
+async def date_check_agent(client: AsyncDedalus, article:str, research_topic:str) -> DateResult:
 	runner = DedalusRunner(client)
 	result = await runner.run(
 		input=f""" 
 
 		The article can be found in:
         "{article}"
+
+		The user is researching the following topic:
+        "{research_topic}"
 
 		Perform a date and relevancy analysis:
 
