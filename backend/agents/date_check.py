@@ -32,11 +32,14 @@ async def date_check_agent(client: AsyncDedalus, article:str, research_topic:str
 
 		1. Identify the date that the article was published, in the form of January 12, 2020, for example.
 		2. Describe the article relevancy by considering the date that the article was published together with the
-			subject of the article. For example, an article about an old news event may be highly relevant even if it's
-			an old article if it covered the event soon after it happened. However, a scientific article likely needs
-			to be newer to reflect scientific advancements/discoveries that have been made between the time of the article
-			and present day. Describe the relevancy using one of the following: Very Low Relevance, Low Relevance,
-			Moderate Relevance, High Relevance, Very High Relevance
+			subject of the article. If no topic was provided, then rate the relevancy based on how up to date the article
+			is to its own subject. For example, if no topic was provided but the article topic is scientific, then rate
+			the article as more relevant if the article is more up to date.
+			If a topic was provided, evaluate the relevance based on what the topic is. For example, an article about an old news
+			event may be highly relevant even if it's an old article if it covered the event soon after it happened. However, a
+			scientific article likely needs to be newer to reflect scientific advancements/discoveries that have been made between
+			the time of the article and present day. Describe the relevancy using one of the following: Very Low Relevance,
+			Low Relevance, Moderate Relevance, High Relevance, Very High Relevance
 		3. Compute an overall date/relevance score from 0 to 100, with 0 meaning that the the article is not at all
 			relevant and outdated and 100 meaning that the article is super relevant and up to date.""",
 
@@ -52,22 +55,3 @@ async def date_check_agent(client: AsyncDedalus, article:str, research_topic:str
 		date_result.confidence_score = 0
 
 	return date_result
-
-
-async def main():
-	url = input("Provide URL of academic paper to check date/relevance: ")
-	client = AsyncDedalus()
-	result = await date_check_agent(client, url)
-     
-	print("\n Date Check Results")
-	print(f"   Overall Score: {result.overall_score}/100")
-	print(f"   Confidence: {result.confidence_score}/100")
-	
-	print(f"   Date: {result.date}")
-	print(f"   Relevance: {result.relevance}")
-	
-	return result
-
-if __name__ == "__main__":
-    print("Running date_check.py")
-    asyncio.run(main())
