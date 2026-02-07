@@ -102,6 +102,7 @@ Output requirements:
         model="openai/gpt-4o",
         mcp_servers=["firecrawl"],
         response_format=BiasCheckResult,
+        temperature = 0.2
     )
 
     return BiasCheckResult.model_validate_json(result.final_output)

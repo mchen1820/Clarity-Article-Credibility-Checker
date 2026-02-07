@@ -56,5 +56,6 @@ async def evidence_check_agent(client: AsyncDedalus, url: str, central_claim: st
         model="openai/gpt-4o",
         mcp_servers=["firecrawl"],
         response_format=EvidenceResult,
+        temperature = 0.2
     )
     return EvidenceResult.model_validate_json(result.final_output)

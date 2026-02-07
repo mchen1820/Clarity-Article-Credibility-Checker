@@ -42,20 +42,30 @@ async def manager_agent(client, url: str, input_text: str, topic:str) -> List[Ba
 async def main():
     url = input("Provide URL to analyze: ")
     client = AsyncDedalus(api_key=dedalus_api_key)
+    topic = input("Provide topic to analyze: ")
     
-    claim_res, citation_res, bias_res, author_res, ev_res, usefulness_res, ai_res  = await manager_agent(client, url= url, input_text = None, topic = "Indian")  
+    
+    claim_res, citation_res, bias_res, author_res, ev_res, usefulness_res, ai_res  = await manager_agent(client, url= url, input_text = None, topic = topic)  
 
     
     # Print results in clean format
     print("Manager Agent Results")
-    print(f"\n📍 Central Claim: {claim_res.central_claim}")
-    print(f"n📍 Claim Analysis: {claim_res.overall_score}")
-    print(f"n📍 Citation Analysis: {citation_res.overall_score}")
-    print(f"n📍 Bias Analysis: {bias_res.overall_score}")
-    print(f"n📍 Author/Organization Analysis: {author_res.overall_score}")
-    print(f"n📍 Evidence Analysis: {ev_res.overall_score}")
-    print(f"n📍 Usefulness Analysis: {usefulness_res.overall_score}")
-    print(f"n📍 AI Detection Analysis: {ai_res.overall_score}")
+    print(f"\n Central Claim: {claim_res.central_claim}")
+    print(f"n Claim Analysis: {claim_res.overall_score}")
+    print(f"n Citation Analysis: {citation_res.overall_score}")
+    print(f"n Bias Analysis: {bias_res.overall_score}")
+    print(f"n Author/Organization Analysis: {author_res.overall_score}")
+    print(f"n Evidence Analysis: {ev_res.overall_score}")
+    print(f"n Usefulness Analysis: {usefulness_res.overall_score}")
+    print(f"n AI Detection Analysis: {ai_res.overall_score}")
+
+    
+
+
+
+    
+
+
 
 
 

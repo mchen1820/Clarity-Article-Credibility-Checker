@@ -46,5 +46,6 @@ async def citation_check_agent(client: AsyncDedalus, url: str) -> CitationResult
         model="openai/gpt-4o",
         mcp_servers=["firecrawl"],
         response_format=CitationResult,
+        temperature = 0.2
     )
     return CitationResult.model_validate_json(result.final_output)

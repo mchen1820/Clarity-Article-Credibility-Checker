@@ -63,5 +63,6 @@ async def usefulness_check_agent(client: AsyncDedalus, url: str, research_topic:
         model="openai/gpt-4o",
         mcp_servers=["firecrawl"],
         response_format=UsefulnessResult,
+        temperature = 0.2
     )
     return UsefulnessResult.model_validate_json(result.final_output)

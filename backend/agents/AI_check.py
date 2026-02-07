@@ -15,7 +15,7 @@ class AIIndicator(BaseModel):
     severity: str = Field(..., description="How strongly this suggests AI usage: strong, moderate, or weak")
 
 
-class AIDetectionResult(BaseAgentResult):
+class AICheckResult(BaseAgentResult):
     """Result model for the AI Detection Agent"""
     ai_likelihood_score: float = Field(..., description="0-100 score estimating likelihood the article was AI-generated or AI-assisted")
     classification: str = Field(..., description="One of: likely_human, likely_ai_assisted, likely_ai_generated, uncertain")
@@ -29,7 +29,7 @@ class AIDetectionResult(BaseAgentResult):
     recommendations: List[str] = Field(default_factory=list, description="Suggestions or observations about AI usage in the article")
 
 
-async def ai_detection_agent(client: AsyncDedalus, url: str) -> AIDetectionResult:
+async def ai_check_agent(client: AsyncDedalus, url: str) -> AICheckResult:
     """Agent that analyzes an article for signs of AI-generated content"""
     runner = DedalusRunner(client)
     result = await runner.run(
@@ -63,6 +63,7 @@ async def ai_detection_agent(client: AsyncDedalus, url: str) -> AIDetectionResul
         rough writing is human. Focus on patterns rather than individual sentences.""",
         model="openai/gpt-4o",
         mcp_servers=["firecrawl"],
-        response_format=AIDetectionResult,
+        response_format=AICheckResult,
+        temperature = 0.2
     )
-    return AIDetectionResult.model_validate_json(result.final_output)
+    return AICheckResult.model_validate_json(result.final_output)

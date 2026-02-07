@@ -59,6 +59,7 @@ async def author_check_agent(client: AsyncDedalus, url: str) -> AuthorResult:
 		model="openai/gpt-4o",
 		mcp_servers=["firecrawl"],
 		response_format=AuthorResult,
+		temperature = 0.2
 		)
 	
 	author_result = AuthorResult.model_validate_json(result.final_output)

@@ -39,7 +39,8 @@ async def claim_agent(client, url: str) -> claim_result:
         """,
         model="openai/gpt-4o",
         mcp_servers=["firecrawl", "tsion/sequential-thinking"],
-        response_format=claim_result
+        response_format=claim_result,
+        temperature = 0.2
     )
     
     # Parse the JSON output into your Pydantic model
