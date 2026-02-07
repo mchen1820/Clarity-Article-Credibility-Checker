@@ -70,16 +70,9 @@ async def main():
     print(f"\nUsefulness Analysis: {results['usefulness'].summary}")
     print(f"   Score: {results['usefulness'].overall_score}/100")
 
-<<<<<<< Updated upstream
     print(f"\nDate and Relevance Analysis: {results['date'].summary}")
     print(f" Relevance: {results['date'].relevance}")
     print(f" Score: {results['date'].overall_score}")
-=======
-    print(f"\n Date and Relevancy check: {results['date'].relevance}")
-    print(f"\n Date and Relevancy check: {results['date'].overall_score}")
-
-    
->>>>>>> Stashed changes
     
 
     
