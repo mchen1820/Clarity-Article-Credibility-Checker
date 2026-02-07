@@ -239,7 +239,7 @@ def build_metadata(source: str, article_text: str, claim_result: dict, author_re
 
     author_from_source = ", ".join(source_meta.get("authors") or [])
     author_value = author_from_source or author_result.get("author_name") or "Unknown"
-    date_value = source_meta.get("date") or datetime.now().strftime("%B %d, %Y")
+    date_value = source_meta.get("date") or "No publication date found"
 
     return {
         "title": title_guess,
