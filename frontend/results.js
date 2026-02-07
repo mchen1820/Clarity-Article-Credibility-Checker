@@ -22,6 +22,8 @@ function loadAnalysisResults() {
         updateOverallScore(results.overall_credibility);
         updateIndividualScores(results);
         updateSummary(results);
+        updateQuotes(results);
+        loadRecommendedArticles(results);
         
         if (!results.hasPurpose) {
             hideUsefulnessScore();
@@ -208,33 +210,50 @@ function updateQuotes(results) {
     });
 }
 
-function loadAnalysisResults() {
-    const resultsJson = sessionStorage.getItem('analysisResult');
+function loadRecommendedArticles(results) {
+    const section = document.getElementById('recommended-section');
+    const grid = document.getElementById('recommended-grid');
     
-    if (!resultsJson) {
-        console.error('No analysis results found');
-        window.location.href = 'index.html';
-        return;
-    }
-
-    try {
-        const results = JSON.parse(resultsJson);
-        console.log('Analysis results:', results);
+    const links = results.author_credibility?.related_links;
+    if (!links || links.length === 0) return;
+    
+    section.style.display = 'block';
+    grid.innerHTML = '';
+    
+    links.forEach((url, i) => {
+        const card = document.createElement('a');
+        card.href = url;
+        card.className = 'article-card';
+        card.target = '_blank';
         
-        updateMetadata(results.metadata);
-        updateOverallScore(results.overall_credibility);
-        updateIndividualScores(results);
-        updateSummary(results);
-        updateQuotes(results); // ADD THIS LINE
+        const isSameAuthor = i === 0;
+        const domain = new URL(url).hostname.replace('www.', '');
         
-        if (!results.hasPurpose) {
-            hideUsefulnessScore();
-        }
+        card.innerHTML = `
+            <div class="article-card-header">
+                <div class="article-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        ${isSameAuthor ? '<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>' : '<path d="M13 10V3L4 14h7v7l9-11h-7z"/>'}
+                    </svg>
+                </div>
+                <span class="article-source">${isSameAuthor ? 'Same Author' : 'Related Topic'}</span>
+            </div>
+            <h3 class="article-title">Related Article ${i + 1}</h3>
+            <p class="article-meta">
+                <span class="article-author">${domain}</span>
+                <span class="article-date">External Link</span>
+            </p>
+            <p class="article-description">Click to view this related article</p>
+            <div class="article-footer">
+                <span class="article-tag">Related</span>
+                <svg class="article-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+        `;
         
-    } catch (error) {
-        console.error('Error loading results:', error);
-        window.location.href = 'index.html';
-    }
+        grid.appendChild(card);
+    });
 }
 
 function hideUsefulnessScore() {

@@ -65,6 +65,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 analyzeBtn.disabled = false;
             }
         });
+    const fileInput = document.getElementById('pdf-input');
+    if (fileInput) {
+        const fileLabel = document.querySelector('.file-label');
+        const fileText = document.querySelector('.file-text');
+        
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const fileName = this.files[0].name;
+                fileText.textContent = `Selected: ${fileName}`;
+                fileLabel.style.borderColor = 'var(--blue-500)';
+                fileLabel.style.background = 'linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%)';
+            }
+        });
+        
+        fileLabel.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--blue-500)';
+            this.style.background = 'linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%)';
+        });
+        
+        fileLabel.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--blue-200)';
+            this.style.background = 'linear-gradient(135deg, var(--blue-100) 0%, var(--blue-50) 100%)';
+        });
+        
+        fileLabel.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                const event = new Event('change', { bubbles: true });
+                fileInput.dispatchEvent(event);
+            }
+        });
+    }
     }
 });
 
