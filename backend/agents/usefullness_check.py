@@ -11,7 +11,6 @@ load_dotenv()
 
 class UsefulQuote(BaseModel):
     quote: str = Field(..., description="A direct quote from the article that is relevant to the topic")
-    relevance: str = Field(..., description="Brief explanation of how this quote relates to the topic")
     suggested_use: str = Field(..., description="How the user could use this quote, e.g. 'supporting evidence', 'counterargument', 'background context'")
 
 
@@ -58,7 +57,9 @@ async def usefulness_check_agent(client: AsyncDedalus, article:str, research_top
         7. Determine the best role for this article in the research (primary source, background
            reading, counterargument, methodological reference, or not useful).
         8. Suggest related topics or keywords from the article that could help find additional sources.
-        9. Provide practical recommendations for how to use this article in their research.
+        9. Store 3 most useful quotes (2 sentences each max) and their suggested use(keep very brief) in useful 
+            quotes section. 
+
         
         Be honest. If the article is only tangentially related or not useful, say so clearly.
         Focus on actionable insights the researcher can use.

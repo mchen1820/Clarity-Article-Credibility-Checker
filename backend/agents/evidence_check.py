@@ -9,11 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class EvidenceItem(BaseModel):
-    description: str = Field(..., description="Description of the piece of evidence")
-    supports_claim: bool = Field(..., description="Whether this evidence supports the central claim")
-    strength: str = Field(..., description="Strength of the evidence: strong, moderate, or weak")
-    reasoning: str = Field(..., description="Why this evidence does or does not support the claim")
+
 
 
 class EvidenceResult(BaseAgentResult):
@@ -23,7 +19,7 @@ class EvidenceResult(BaseAgentResult):
     supporting_evidence_count: int = Field(0, description="Number of pieces supporting the claim")
     contradicting_evidence_count: int = Field(0, description="Number of pieces contradicting the claim")
     neutral_evidence_count: int = Field(0, description="Number of pieces that are neutral or irrelevant")
-    evidence_items: List[EvidenceItem] = Field(default_factory=list, description="Detailed breakdown of each piece of evidence")
+    evidence_items: List[str] = Field(default_factory=list, description="Direct, useful quotes from article")
     methodology_quality: str = Field(..., description="Assessment of research methodology: strong, adequate, weak, or not applicable")
     data_quality: str = Field(..., description="Assessment of data quality: strong, adequate, weak, or not applicable")
     logical_consistency: bool = Field(..., description="Whether the argument from evidence to claim is logically consistent")
@@ -52,13 +48,13 @@ async def evidence_check_agent(client: AsyncDedalus, article: str, central_claim
         7. Determine whether the argument from evidence to claim is logically consistent.
         8. Identify any gaps in the evidence or reasoning.
         9. Provide recommendations for strengthening the evidence.
-        
+        10. Store 3-5 most important quotes (each no more than 1 sentence) in evidence items part of your return.
         Be critical and thorough. Look for unsupported assertions, cherry-picked data,
         logical fallacies, and missing counterarguments.
 
         In your summary, act like you are a professor reviewing this article for evidence and how it used
         Act like its part of a grade review with your student. """,
-        model="openai/gpt-4o",
+        model="openai/gpt-4o", 
         response_format=EvidenceResult,
         temperature = 0.2
     )
