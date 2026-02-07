@@ -18,8 +18,10 @@ from citation_check import citation_check_agent, CitationResult
 from author_org_check import author_check_agent, AuthorResult
 from evidence_check import evidence_check_agent, EvidenceResult
 from usefullness_check import usefulness_check_agent, UsefulnessResult
+from date_check import date_check_agent, DateResult
 from text_extractor import extract_text
 from manager import manager_agent, ManagerSynthesisResult, manager_synthesis_agent
+
 
 dedalus_api_key = os.getenv('DEDALUS_API_KEY')
 
@@ -66,6 +68,10 @@ async def main():
     
     print(f"\nUsefulness Analysis: {results['usefulness'].summary}")
     print(f"   Score: {results['usefulness'].overall_score}/100")
+
+    print(f"\n Date and Relevancy check: {results['date'].relevance}")
+    print(f"\n Date and Relevancy check: {results['date'].overall_score}")
+    
 
     
     synthesis = results['synthesis']
