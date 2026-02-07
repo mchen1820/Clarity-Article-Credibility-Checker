@@ -42,7 +42,62 @@ async def main():
     print(f"✅ Extracted {len(text)} characters\n")
     
     # Run manager agent
-    results = await manager_agent(client, url=url, input_text=text, topic=topic)
+    results = await manager_agent(client, input_text=text, topic=topic)
+
+
+    print("\n" + "="*60)
+    print("📋 DETAILED AGENT RESULTS")
+    print("="*60)
+    
+    print(f"\n📰 Central Claim: {results['claim'].central_claim}")
+    print(f"   Summary: {results['claim'].summary}")
+    
+    print(f"\n📚 Citation Analysis: {results['citations'].summary}")
+    print(f"   Score: {results['citations'].overall_score}/100")
+    
+    print(f"\n⚖️  Bias Analysis: {results['bias'].summary}")
+    print(f"   Score: {results['bias'].overall_score}/100")
+    
+    print(f"\n👤 Author/Org Analysis: {results['author'].summary}")
+    print(f"   Score: {results['author'].overall_score}/100")
+    
+    print(f"\n🔍 Evidence Analysis: {results['evidence'].summary}")
+    print(f"   Score: {results['evidence'].overall_score}/100")
+    
+    print(f"\n💡 Usefulness Analysis: {results['usefulness'].summary}")
+    print(f"   Score: {results['usefulness'].overall_score}/100")
+    
+    
+    # Print Manager's Synthesis (THE MAIN OUTPUT)
+    synthesis = results['synthesis']
+    print("\n" + "="*60)
+    print("🎯 MANAGER'S FINAL SYNTHESIS")
+    print("="*60)
+    
+    print(f"\n📊 Overall Credibility Score: {synthesis.overall_credibility_score}/100")
+    print(f"   Recommendation: {synthesis.recommendation}")
+    
+    print(f"\n📝 Final Verdict:")
+    print(f"   {synthesis.final_verdict}")
+    
+    print(f"\n🔑 Key Findings:")
+    for i, finding in enumerate(synthesis.key_findings, 1):
+        print(f"   {i}. {finding}")
+    
+    if synthesis.red_flags:
+        print(f"\n🚩 Red Flags:")
+        for i, flag in enumerate(synthesis.red_flags, 1):
+            print(f"   {i}. {flag}")
+    
+    if synthesis.strengths:
+        print(f"\n✅ Strengths:")
+        for i, strength in enumerate(synthesis.strengths, 1):
+            print(f"   {i}. {strength}")
+    
+    print(f"\n📄 Executive Summary:")
+    print(f"   {synthesis.summary}")
+    
+
     
     return results  # Return results instead of 0
 
