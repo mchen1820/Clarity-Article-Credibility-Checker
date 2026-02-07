@@ -46,7 +46,11 @@ async def citation_check_agent(client: AsyncDedalus, article: str ) -> CitationR
         6. Count how many citations come from peer-reviewed sources.
         7. Identify any self-citations by the author(s).
         8. Estimate the average age of cited sources.
-        9. Provide recommendations for improving the citation quality.""",
+        9. Provide recommendations for improving the citation quality.
+
+    In your summary, act like you are a professor reviewing this article for citations and crediblity of those citations.
+    Act like its part of a grade review with your student. """,
+
         model="openai/gpt-4o",
         response_format=CitationResult,
         temperature = 0.2

@@ -54,7 +54,10 @@ async def evidence_check_agent(client: AsyncDedalus, article: str, central_claim
         9. Provide recommendations for strengthening the evidence.
         
         Be critical and thorough. Look for unsupported assertions, cherry-picked data,
-        logical fallacies, and missing counterarguments.""",
+        logical fallacies, and missing counterarguments.
+
+        In your summary, act like you are a professor reviewing this article for evidence and how it used
+        Act like its part of a grade review with your student. """,
         model="openai/gpt-4o",
         response_format=EvidenceResult,
         temperature = 0.2
