@@ -32,6 +32,8 @@ async def citation_check_agent(client: AsyncDedalus, url: str) -> CitationResult
     runner = DedalusRunner(client)
     result = await runner.run(
         input=f"""Analyze the citations and references in the academic paper at: {url}
+        If URL is none, analyze the citations in the provided text. Else, ignore the input text. 
+
 
         Perform a thorough citation check:
         1. Count all citations/references in the paper.

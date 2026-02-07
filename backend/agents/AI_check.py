@@ -15,7 +15,7 @@ class AIIndicator(BaseModel):
     severity: str = Field(..., description="How strongly this suggests AI usage: strong, moderate, or weak")
 
 
-class AIDetectionResult(BaseAgentResult):
+class AICheckResult(BaseAgentResult):
     """Result model for the AI Detection Agent"""
     ai_likelihood_score: float = Field(..., description="0-100 score estimating likelihood the article was AI-generated or AI-assisted")
     classification: str = Field(..., description="One of: likely_human, likely_ai_assisted, likely_ai_generated, uncertain")
@@ -29,11 +29,13 @@ class AIDetectionResult(BaseAgentResult):
     recommendations: List[str] = Field(default_factory=list, description="Suggestions or observations about AI usage in the article")
 
 
-async def ai_detection_agent(client: AsyncDedalus, url: str) -> AIDetectionResult:
+async def ai_check_agent(client: AsyncDedalus, url: str) -> AICheckResult:
     """Agent that analyzes an article for signs of AI-generated content"""
     runner = DedalusRunner(client)
     result = await runner.run(
         input=f"""Analyze the article at: {url}
+        If URL is none, analyze the citations in the provided text. Else, ignore the input text. 
+
 
         Perform a thorough AI-usage detection analysis:
         1. Assess the overall likelihood that this article was written by AI, assisted by AI, or written entirely by a human.
@@ -63,10 +65,10 @@ async def ai_detection_agent(client: AsyncDedalus, url: str) -> AIDetectionResul
         rough writing is human. Focus on patterns rather than individual sentences.""",
         model="openai/gpt-4o",
         mcp_servers=["firecrawl"],
-        response_format=AIDetectionResult,
+        response_format=AICheckResult,
     )
 
-    ai_result = AIDetectionResult.model_validate_json(result.final_output)
+    ai_result = AICheckResult.model_validate_json(result.final_output)
 
     # Confidence based on how many indicators were found
     total_signals = len(ai_result.indicators_found) + len(ai_result.human_signals)
@@ -78,53 +80,53 @@ async def ai_detection_agent(client: AsyncDedalus, url: str) -> AIDetectionResul
     return ai_result
 
 
-async def main():
-    url = input("Provide URL of article to check for AI usage: ")
-    client = AsyncDedalus()
-    result = await ai_detection_agent(client, url)
+# async def main():
+#     url = input("Provide URL of article to check for AI usage: ")
+#     client = AsyncDedalus()
+#     result = await ai_detection_agent(client, url)
 
-    print("\n🤖 AI Detection Results")
-    print("=" * 60)
-    print(f"\n📊 AI Likelihood: {result.ai_likelihood_score}/100")
-    print(f"   Classification: {result.classification}")
-    print(f"   Overall Score: {result.overall_score}/100")
-    print(f"   Confidence: {result.confidence_score}/100")
-    print(f"   AI Disclosed: {'Yes' if result.disclosed_ai_usage else 'No'}")
+#     print("\n🤖 AI Detection Results")
+#     print("=" * 60)
+#     print(f"\n📊 AI Likelihood: {result.ai_likelihood_score}/100")
+#     print(f"   Classification: {result.classification}")
+#     print(f"   Overall Score: {result.overall_score}/100")
+#     print(f"   Confidence: {result.confidence_score}/100")
+#     print(f"   AI Disclosed: {'Yes' if result.disclosed_ai_usage else 'No'}")
 
-    print(f"\n🔍 Writing Analysis:")
-    print(f"   Vocabulary Diversity: {result.vocabulary_diversity}")
-    print(f"   Structure: {result.structural_analysis}")
+#     print(f"\n🔍 Writing Analysis:")
+#     print(f"   Vocabulary Diversity: {result.vocabulary_diversity}")
+#     print(f"   Structure: {result.structural_analysis}")
 
-    if result.indicators_found:
-        print(f"\n🚩 AI Indicators Found ({len(result.indicators_found)}):")
-        for ind in result.indicators_found:
-            print(f"   [{ind.severity.upper()}] {ind.indicator}")
-            print(f"      Location: {ind.location}")
+#     if result.indicators_found:
+#         print(f"\n🚩 AI Indicators Found ({len(result.indicators_found)}):")
+#         for ind in result.indicators_found:
+#             print(f"   [{ind.severity.upper()}] {ind.indicator}")
+#             print(f"      Location: {ind.location}")
 
-    if result.stylistic_flags:
-        print(f"\n✍️  Stylistic Flags:")
-        for flag in result.stylistic_flags:
-            print(f"     • {flag}")
+#     if result.stylistic_flags:
+#         print(f"\n✍️  Stylistic Flags:")
+#         for flag in result.stylistic_flags:
+#             print(f"     • {flag}")
 
-    if result.repetitive_phrases:
-        print(f"\n🔁 Repetitive Phrases:")
-        for phrase in result.repetitive_phrases:
-            print(f"     • \"{phrase}\"")
+#     if result.repetitive_phrases:
+#         print(f"\n🔁 Repetitive Phrases:")
+#         for phrase in result.repetitive_phrases:
+#             print(f"     • \"{phrase}\"")
 
-    if result.human_signals:
-        print(f"\n👤 Human Signals ({len(result.human_signals)}):")
-        for signal in result.human_signals:
-            print(f"     • {signal}")
+#     if result.human_signals:
+#         print(f"\n👤 Human Signals ({len(result.human_signals)}):")
+#         for signal in result.human_signals:
+#             print(f"     • {signal}")
 
-    if result.recommendations:
-        print(f"\n💡 Recommendations:")
-        for rec in result.recommendations:
-            print(f"     • {rec}")
+#     if result.recommendations:
+#         print(f"\n💡 Recommendations:")
+#         for rec in result.recommendations:
+#             print(f"     • {rec}")
 
-    print(f"\n📝 Summary: {result.summary}")
-    return result
+#     print(f"\n📝 Summary: {result.summary}")
+#     return result
 
 
-if __name__ == "__main__":
-    print("Running ai_detection.py")
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     print("Running ai_detection.py")
+#     asyncio.run(main())

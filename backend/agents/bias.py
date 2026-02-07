@@ -28,7 +28,7 @@ async def bias_check_agent(client: AsyncDedalus, url: str) -> BiasCheckResult:
     result = await runner.run(
         input=f"""
 Analyze the article at the following URL for linguistic bias:
-{url}
+{url}If URL is none, analyze the citations in the provided text. Else, ignore the input text. 
 
 
 Perform a structured bias analysis using ONLY the article text.

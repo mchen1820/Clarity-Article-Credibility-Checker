@@ -40,6 +40,8 @@ async def usefulness_check_agent(client: AsyncDedalus, url: str, research_topic:
     runner = DedalusRunner(client)
     result = await runner.run(
         input=f"""Analyze the article at: {url}
+        If URL is none, analyze the citations in the provided text. Else, ignore the input text. 
+
 
         The user is researching the following topic:
         "{research_topic}"
@@ -77,61 +79,61 @@ async def usefulness_check_agent(client: AsyncDedalus, url: str, research_topic:
     return usefulness_result
 
 
-async def main():
-    url = input("Provide URL of article to evaluate: ")
-    research_topic = input("What is your research/essay topic? ")
-    client = AsyncDedalus()
-    result = await usefulness_check_agent(client, url, research_topic)
+# async def main():
+#     url = input("Provide URL of article to evaluate: ")
+#     research_topic = input("What is your research/essay topic? ")
+#     client = AsyncDedalus()
+#     result = await usefulness_check_agent(client, url, research_topic)
 
-    print("\n📖 Usefulness Check Results")
-    print("=" * 60)
-    print(f"\n🎯 Research Topic: {result.research_topic}")
-    print(f"   Alignment Score: {result.alignment_score}/100")
-    print(f"   Overall Score: {result.overall_score}/100")
-    print(f"   Confidence: {result.confidence_score}/100")
-    print(f"   Suggested Role: {result.suggested_role}")
+#     print("\n📖 Usefulness Check Results")
+#     print("=" * 60)
+#     print(f"\n🎯 Research Topic: {result.research_topic}")
+#     print(f"   Alignment Score: {result.alignment_score}/100")
+#     print(f"   Overall Score: {result.overall_score}/100")
+#     print(f"   Confidence: {result.confidence_score}/100")
+#     print(f"   Suggested Role: {result.suggested_role}")
 
-    if result.useful_quotes:
-        print(f"\n💬 Useful Quotes ({len(result.useful_quotes)}):")
-        for i, q in enumerate(result.useful_quotes, 1):
-            print(f"   {i}. \"{q.quote}\"")
-            print(f"      Relevance: {q.relevance}")
-            print(f"      Use as: {q.suggested_use}")
+#     if result.useful_quotes:
+#         print(f"\n💬 Useful Quotes ({len(result.useful_quotes)}):")
+#         for i, q in enumerate(result.useful_quotes, 1):
+#             print(f"   {i}. \"{q.quote}\"")
+#             print(f"      Relevance: {q.relevance}")
+#             print(f"      Use as: {q.suggested_use}")
 
-    if result.useful_sections:
-        print(f"\n📑 Relevant Sections ({len(result.useful_sections)}):")
-        for sec in result.useful_sections:
-            print(f"   [{sec.strength.upper()}] {sec.section_name}")
-            print(f"      {sec.relevance_summary}")
+#     if result.useful_sections:
+#         print(f"\n📑 Relevant Sections ({len(result.useful_sections)}):")
+#         for sec in result.useful_sections:
+#             print(f"   [{sec.strength.upper()}] {sec.section_name}")
+#             print(f"      {sec.relevance_summary}")
 
-    if result.key_arguments:
-        print(f"\n🗂️  Key Arguments:")
-        for arg in result.key_arguments:
-            print(f"     • {arg}")
+#     if result.key_arguments:
+#         print(f"\n🗂️  Key Arguments:")
+#         for arg in result.key_arguments:
+#             print(f"     • {arg}")
 
-    if result.counterarguments:
-        print(f"\n⚖️  Counterarguments:")
-        for ca in result.counterarguments:
-            print(f"     • {ca}")
+#     if result.counterarguments:
+#         print(f"\n⚖️  Counterarguments:")
+#         for ca in result.counterarguments:
+#             print(f"     • {ca}")
 
-    if result.gaps:
-        print(f"\n⚠️  Gaps (not covered by this article):")
-        for gap in result.gaps:
-            print(f"     • {gap}")
+#     if result.gaps:
+#         print(f"\n⚠️  Gaps (not covered by this article):")
+#         for gap in result.gaps:
+#             print(f"     • {gap}")
 
-    if result.related_topics:
-        print(f"\n🔗 Related Topics to Search:")
-        print(f"     {', '.join(result.related_topics)}")
+#     if result.related_topics:
+#         print(f"\n🔗 Related Topics to Search:")
+#         print(f"     {', '.join(result.related_topics)}")
 
-    if result.recommendations:
-        print(f"\n💡 Recommendations:")
-        for rec in result.recommendations:
-            print(f"     • {rec}")
+#     if result.recommendations:
+#         print(f"\n💡 Recommendations:")
+#         for rec in result.recommendations:
+#             print(f"     • {rec}")
 
-    print(f"\n📝 Summary: {result.summary}")
-    return result
+#     print(f"\n📝 Summary: {result.summary}")
+#     return result
 
 
-if __name__ == "__main__":
-    print("Running usefulness_check.py")
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     print("Running usefulness_check.py")
+#     asyncio.run(main())

@@ -18,6 +18,8 @@ async def claim_agent(client, url: str) -> claim_result:
     runner = DedalusRunner(client)
     result = await runner.run(
         input=f"""Analyze the following URL for the following information: {url}
+        If URL is none, analyze the citations in the provided text. Else, ignore the input text. 
+
         Pretend that you are a journalist who has just read the article. What is the central claim of the article?
         1. Extract the central claim of the webpage in one two to sentences. 
             Store this information in the central claim field of the result object.
