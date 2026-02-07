@@ -36,6 +36,19 @@ HEADERS = {
 
 # Maximum text length to send to LLM (roughly ~60k tokens)
 MAX_TEXT_LENGTH = 200_000
+MIN_TEXT_LENGTH_GENERAL = 250
+MIN_TEXT_LENGTH_SCHOLARLY = 1200
+
+SCHOLARLY_DOMAINS = [
+    "link.springer.com",
+    "springer.com",
+    "onlinelibrary.wiley.com",
+    "sciencedirect.com",
+    "ieeexplore.ieee.org",
+    "nature.com",
+    "tandfonline.com",
+    "sagepub.com",
+]
 
 
 def is_pdf_url(url: str) -> bool:
@@ -48,6 +61,25 @@ def is_pdf_url(url: str) -> bool:
     if "/pdf/" in url_lower:
         return True
     return False
+
+
+def is_scholarly_url(url: str) -> bool:
+    """Check if URL belongs to a scholarly publisher where abstracts are common."""
+    host = urlparse(url).netloc.lower()
+    return any(domain in host for domain in SCHOLARLY_DOMAINS)
+
+
+def has_sufficient_text(url: str, text: str) -> bool:
+    """Decide if extracted text is likely full content vs. just abstract/header."""
+    min_len = MIN_TEXT_LENGTH_SCHOLARLY if is_scholarly_url(url) else MIN_TEXT_LENGTH_GENERAL
+    text_len = len(text.strip())
+    if text_len < min_len:
+        print(
+            f"[text_extractor] Text too short for {urlparse(url).netloc} "
+            f"({text_len} < {min_len}), trying fallback methods"
+        )
+        return False
+    return True
 
 
 def extract_from_pdf(url: str) -> Optional[str]:
@@ -278,6 +310,9 @@ def extract_doi(url: str) -> Optional[str]:
     doi_match = re.search(r"/doi/(?:epdf|pdfdirect|pdf|full|abs)?/?(10\.\d{4,9}/[^?#]+)", url)
     if doi_match:
         return doi_match.group(1).strip("/")
+    doi_match = re.search(r"/(?:article|chapter)/(10\.\d{4,9}/[^?#]+)", url)
+    if doi_match:
+        return doi_match.group(1).strip("/")
     return None
 
 
@@ -380,6 +415,75 @@ def extract_from_wiley(url: str) -> Optional[str]:
     return None
 
 
+def extract_from_springer(url: str) -> Optional[str]:
+    """
+    Springer-specific flow:
+    1. Resolve DOI from article/chapter URL.
+    2. Try known Springer PDF endpoints.
+    3. Fall back to HTML + discovered PDF links.
+    """
+    parsed = urlparse(url)
+    host = parsed.netloc.lower()
+    if "link.springer.com" not in host:
+        return None
+
+    doi = extract_doi(url)
+    if not doi:
+        return None
+
+    session = requests.Session()
+    candidates = [
+        f"https://link.springer.com/content/pdf/{doi}.pdf",
+        f"https://link.springer.com/content/pdf/{doi}.pdf?download=1",
+        f"https://link.springer.com/article/{doi}",
+        f"https://link.springer.com/chapter/{doi}",
+    ]
+
+    for candidate in candidates:
+        try:
+            response = session.get(candidate, headers=HEADERS, timeout=30, allow_redirects=True)
+            print(f"[text_extractor] Springer fetch: {response.status_code} {candidate}")
+            if response.status_code >= 400:
+                continue
+
+            content_type = response.headers.get("Content-Type", "").lower()
+            if "pdf" in content_type or response.content[:5] == b"%PDF-":
+                text = extract_pdf_bytes(response.content, url=candidate)
+                if text and has_sufficient_text(candidate, text):
+                    return text
+                continue
+
+            if "html" in content_type or "text" in content_type:
+                html_text = extract_from_html(response.url)
+                if html_text and has_sufficient_text(response.url, html_text):
+                    return html_text
+
+                for pdf_link in discover_pdf_links_from_html(response.text, response.url):
+                    try:
+                        pdf_headers = dict(HEADERS)
+                        pdf_headers["Referer"] = response.url
+                        pdf_response = session.get(
+                            pdf_link,
+                            headers=pdf_headers,
+                            timeout=30,
+                            allow_redirects=True,
+                        )
+                        if pdf_response.status_code >= 400:
+                            continue
+                        text = extract_pdf_bytes(pdf_response.content, url=pdf_link)
+                        if text and has_sufficient_text(pdf_link, text):
+                            print(f"[text_extractor] Springer discovered PDF URL succeeded: {pdf_link}")
+                            return text
+                    except Exception as pdf_err:
+                        print(f"[text_extractor] Springer PDF discovery fetch failed: {pdf_err}")
+                        continue
+        except Exception as e:
+            print(f"[text_extractor] Springer fetch failed: {e}")
+            continue
+
+    return None
+
+
 def extract_text_basic(url: str) -> Optional[str]:
     """
     Extraction strategy for a single URL. Tries methods in order:
@@ -405,14 +509,16 @@ def extract_text_basic(url: str) -> Optional[str]:
     # 3. HTML extraction (most common case)
     text = extract_from_html(url)
     if text:
-        print(f"[text_extractor] ✅ HTML extraction succeeded ({len(text)} chars)")
-        return text
+        if has_sufficient_text(url, text):
+            print(f"[text_extractor] ✅ HTML extraction succeeded ({len(text)} chars)")
+            return text
 
     # 4. Last resort: try as PDF anyway (some servers don't use .pdf extension)
     text = extract_from_pdf(url)
     if text:
-        print(f"[text_extractor] ✅ Fallback PDF extraction succeeded ({len(text)} chars)")
-        return text
+        if has_sufficient_text(url, text):
+            print(f"[text_extractor] ✅ Fallback PDF extraction succeeded ({len(text)} chars)")
+            return text
 
     print(f"[text_extractor] ❌ All extraction methods failed for: {url}")
     return None
@@ -438,6 +544,11 @@ def extract_text(url: str) -> Optional[str]:
     text = extract_from_wiley(url)
     if text:
         print(f"[text_extractor] ✅ Wiley extraction succeeded ({len(text)} chars)")
+        return text
+
+    text = extract_from_springer(url)
+    if text:
+        print(f"[text_extractor] ✅ Springer extraction succeeded ({len(text)} chars)")
         return text
 
     fallback_urls = build_fallback_urls(url)
