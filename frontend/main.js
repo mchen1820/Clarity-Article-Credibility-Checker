@@ -2,27 +2,16 @@
 // INDEX PAGE - Form submission and analysis
 // ============================================
 
-/*
- * BACKEND INTEGRATION INSTRUCTIONS:
- * 
- * Currently using MOCK DATA for testing (see getMockAnalysisData function below)
- * 
- * To switch to real backend:
- * 1. In the analyze button handler, replace:
- *    const result = getMockAnalysisData(purpose);
- *    
- *    With the commented code that calls the real API:
- *    if (url) result = await analyzeUrl(url, purpose);
- *    else if (text) result = await analyzeText(text, purpose);
- *    else if (pdfFile) result = await analyzePdf(pdfFile, purpose);
- * 
- * 2. Make sure Flask backend is running: python app.py
- * 
- * 3. Change the delay from 3000ms to 0 for instant redirect
- */
-
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = (() => {
+    if (window.CLARITY_API_BASE_URL) {
+        return window.CLARITY_API_BASE_URL;
+    }
+    if (window.location.protocol.startsWith('http')) {
+        return `${window.location.origin}/api`;
+    }
+    return 'http://localhost:5000/api';
+})();
 
 // ============================================
 // FORM SUBMISSION & ANALYSIS
@@ -33,8 +22,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlInput = document.getElementById('url-input');
     const textInput = document.getElementById('text-input');
     const pdfInput = document.getElementById('pdf-input');
+    const fileText = document.querySelector('.file-text');
     const purposeInput = document.getElementById('purpose-input');
     const loading = document.getElementById('loading');
+    const defaultFileLabel = 'Choose PDF file';
+
+    if (pdfInput && fileText) {
+        pdfInput.addEventListener('change', function() {
+            const selected = this.files && this.files[0];
+            if (selected) {
+                fileText.textContent = selected.name;
+                fileText.title = selected.name;
+                if (urlInput) urlInput.value = '';
+                if (textInput) textInput.value = '';
+            } else {
+                fileText.textContent = defaultFileLabel;
+                fileText.title = '';
+            }
+        });
+    }
+
+    if (urlInput) {
+        urlInput.addEventListener('input', function() {
+            if (this.value.trim().length > 0 && pdfInput) {
+                pdfInput.value = '';
+                if (fileText) {
+                    fileText.textContent = defaultFileLabel;
+                    fileText.title = '';
+                }
+            }
+        });
+    }
+
+    if (textInput) {
+        textInput.addEventListener('input', function() {
+            if (this.value.trim().length > 0 && pdfInput) {
+                pdfInput.value = '';
+                if (fileText) {
+                    fileText.textContent = defaultFileLabel;
+                    fileText.title = '';
+                }
+            }
+        });
+    }
 
     if (analyzeBtn) {
         analyzeBtn.addEventListener('click', async function(e) {
@@ -45,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const text = textInput?.value.trim();
             const pdfFile = pdfInput?.files[0];
             const purpose = purposeInput?.value.trim();
-
+            
             // Validate that at least one input is provided
             if (!url && !text && !pdfFile) {
                 showNotification('Please provide an article URL, text, or PDF file to analyze.', 'warning');
@@ -54,16 +84,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Show loading with animation
             showLoadingAnimation();
+            analyzeBtn.disabled = true;
 
             try {
-                // TEMPORARY: Use mock data until backend is integrated
-                const result = getMockAnalysisData(purpose);
+                let result;
+                // Priority: PDF > URL > text
+                if (pdfFile) {
+                    result = await analyzePdf(pdfFile, purpose);
+                } else if (url) {
+                    result = await analyzeUrl(url, purpose);
+                } else {
+                    result = await analyzeText(text, purpose);
+                }
 
                 // Store results in sessionStorage
                 sessionStorage.setItem('analysisResult', JSON.stringify(result));
 
-                // Add delay for animation effect
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                // Short delay so transition is visible after a real response.
+                await new Promise(resolve => setTimeout(resolve, 450));
 
                 // Redirect to results page
                 window.location.href = 'results.html';
@@ -71,7 +109,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Analysis error:', error);
                 showNotification('Error analyzing article: ' + error.message, 'error');
-                loading.style.display = 'none';
+                hideLoadingAnimation();
+                analyzeBtn.disabled = false;
             }
         });
     }
@@ -294,6 +333,10 @@ async function analyzeText(text, purpose = '') {
 }
 
 async function analyzePdf(file, purpose = '') {
+    if (!file) {
+        throw new Error('No PDF file selected.');
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     if (purpose) {
