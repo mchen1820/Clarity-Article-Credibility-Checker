@@ -9,18 +9,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class BiasIndicator(BaseModel):
-    """Specific wording or framing indicators contributing to bias"""
-    example_text: str
-    indicator_type: str  # e.g. "emotionally loaded", "persuasive framing", "selective emphasis"
-
 class BiasCheckResult(BaseAgentResult):
     """Result model for the Bias Check Agent"""
     dominant_tone: str = Field(..., description="Dominant tone of the article")
-    bias_level: str = Field(..., description="Human-readable bias level (Low, Moderate, High)")
-    key_indicators: List[BiasIndicator] = Field(default_factory=list)
+    key_indicators: List[str] = Field(default_factory=list)
     affected_topics: List[str] = Field(default_factory=list)
     recommendations: List[str] = Field(default_factory=list)
+    bias_level: str = Field(..., description="Human-readable bias level (Low, Moderate, High)")
 
 async def bias_check_agent(client: AsyncDedalus, article:str) -> BiasCheckResult:
     """Agent that analyzes linguistic bias in an article"""
@@ -28,8 +23,8 @@ async def bias_check_agent(client: AsyncDedalus, article:str) -> BiasCheckResult
     result = await runner.run(
         input=f""" 
 
-
-
+      The article can be found in:
+        "{article}"
 
 Perform a structured bias analysis using ONLY the article text.
 Do NOT fact-check.
@@ -38,22 +33,15 @@ Do NOT speculate beyond what is written.
 
 Follow these steps exactly:
 
-1. Identify emotionally loaded or value-laden language.
-   - Count distinct instances where wording implies judgment, approval, fear, or moral positioning.
-
-2. Identify persuasive or opinionated framing.
-   - Look for rhetorical devices such as contrastive framing, selective emphasis, or implied conclusions.
-
-3. Identify indicators of author preference or alignment.
-   - Note language that favors or disfavors specific groups, ideologies, or outcomes.
-
-4. Assess balance of presentation.
-   - Determine whether multiple perspectives are presented neutrally, selectively, or not at all.
-
-5. Determine the dominant tone of the article.
+1. Identify the dominant tone of the article, taking into account any emotionally loaded language.
    - Choose the most fitting tone (e.g., neutral, persuasive, critical, alarmist, dismissive).
 
-6. Compute an overall bias score from 0 to 100 using this logic:
+2. Identify any key bias indicators in the form of quotes from the article that demonstrate bias by implying judgment, approval, moral positioning, etc.
+
+3. Identify affected topics that the article may demonstrate bias towards. For example, if the author is biased towards
+      favoring a particular political party, team, etc.
+
+4. Compute an overall bias score from 0 to 100 using this logic:
    - Start from a baseline of 0
    - Increase the score based on:
      • Frequency of biased wording
@@ -62,14 +50,14 @@ Follow these steps exactly:
      • Lack of balance or counterpoints
    - Higher scores indicate stronger linguistic bias
 
-7. Assign a bias level label based on the score:
+5. Assign a bias level label based on the score:
    - 0–20: Very Low Bias
    - 21–40: Low Bias
    - 41–60: Moderate Bias
    - 61–80: High Bias
    - 81–100: Very High Bias
 
-8. Calculate a confidence score (0–100) using the following process:
+6. Calculate a confidence score (0–100) using the following process:
 
    a. Start from a baseline confidence of 50.
 
@@ -79,10 +67,10 @@ Follow these steps exactly:
       - +10 if the article is long enough to allow robust analysis
 
    c. Subtract confidence points for uncertainty:
-      - −10 if the article is very short or lacks sufficient text
-      - −10 if bias indicators are subtle, ambiguous, or isolated
-      - −10 if tone varies significantly across sections
-      - −10 if language is largely neutral with only minor indicators
+      - -10 if the article is very short or lacks sufficient text
+      - -10 if bias indicators are subtle, ambiguous, or isolated
+      - -10 if tone varies significantly across sections
+      - -10 if language is largely neutral with only minor indicators
 
    d. Clamp the final confidence score between 0 and 100.
 
@@ -90,7 +78,7 @@ Follow these steps exactly:
    - Confidence should be LOW when evidence is sparse or ambiguous
    - Confidence should be HIGH only when indicators are frequent and clear
 
-9. Provide brief, practical recommendations for improving neutrality, if applicable.
+7. Provide brief, practical recommendations for improving neutrality, if applicable.
 
 Output requirements:
 - Provide ONLY the analysis content
@@ -120,8 +108,8 @@ Output requirements:
 
 #     if result.key_indicators:
 #         print("\n   Key Bias Indicators:")
-#         for ind in result.key_indicators:
-#             print(f"     • [{ind.indicator_type}] {ind.example_text}")
+#         for indicator in result.key_indicators:
+#             print(f"     • {indicator}")
 
 #     if result.affected_topics:
 #         print("\n   Affected Topics:")
