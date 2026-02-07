@@ -4,10 +4,15 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     loadAnalysisResults();
+    initializeScoreModal();
+    initializeDropdowns();
 });
 
+// ============================================
+// LOAD AND DISPLAY RESULTS
+// ============================================
+
 function loadAnalysisResults() {
-    // Get results from sessionStorage
     const resultsJson = sessionStorage.getItem('analysisResult');
     
     if (!resultsJson) {
@@ -20,17 +25,14 @@ function loadAnalysisResults() {
         const results = JSON.parse(resultsJson);
         console.log('Analysis results:', results);
         
-        // Update metadata
         updateMetadata(results.metadata);
-        
-        // Update overall credibility
         updateOverallScore(results.overall_credibility);
-        
-        // Update individual scores
         updateIndividualScores(results);
-        
-        // Update summary and central claim
         updateSummary(results);
+        
+        if (!results.hasPurpose) {
+            hideUsefulnessScore();
+        }
         
     } catch (error) {
         console.error('Error loading results:', error);
@@ -39,25 +41,21 @@ function loadAnalysisResults() {
 }
 
 function updateMetadata(metadata) {
-    // Update title
     const titleElement = document.querySelector('.meta-item:nth-child(1) .meta-value');
     if (titleElement && metadata.title) {
         titleElement.textContent = metadata.title;
     }
     
-    // Update author
     const authorElement = document.querySelector('.meta-item:nth-child(2) .meta-value');
     if (authorElement && metadata.author) {
         authorElement.textContent = metadata.author;
     }
     
-    // Update date
     const dateElement = document.querySelector('.meta-item:nth-child(3) .meta-value');
     if (dateElement && metadata.date) {
         dateElement.textContent = metadata.date;
     }
     
-    // Update preview
     const previewElement = document.querySelector('.preview p');
     if (previewElement && metadata.preview_text) {
         previewElement.textContent = metadata.preview_text;
@@ -73,7 +71,6 @@ function updateOverallScore(score) {
         pieValue.textContent = score;
     }
     
-    // Update description based on score
     const scoreDescription = document.querySelector('.score-description');
     if (scoreDescription) {
         if (score >= 80) {
@@ -91,15 +88,12 @@ function updateOverallScore(score) {
 }
 
 function updateIndividualScores(results) {
-    // Score mapping matches the order in HTML:
-    // Evidence, Bias, Date, Citation, Author, Publisher, Usefulness
     const scoreMapping = [
         { key: 'evidence_check', label: 'Evidence Quality Score' },
         { key: 'bias_check', label: 'Bias & Framing Score' },
         { key: 'relevancy_check', label: 'Date & Relevancy Score' },
         { key: 'citation_check', label: 'Citation Validity Score' },
-        { key: 'author_credibility', label: 'Author Credibility Score' },
-        { key: 'organization_check', label: 'Publisher Credibility Score' },
+        { key: 'author_credibility', label: 'Author & Publisher Score' },
         { key: 'usefulness_check', label: 'Usefulness Score' },
     ];
     
@@ -113,7 +107,6 @@ function updateIndividualScores(results) {
             if (data && data.overall_score !== undefined) {
                 const score = data.overall_score;
                 
-                // Update pie chart
                 const pie = card.querySelector('.pie');
                 const pieText = card.querySelector('.pie-text');
                 if (pie && pieText) {
@@ -122,13 +115,11 @@ function updateIndividualScores(results) {
                     pieText.textContent = `${score}%`;
                 }
                 
-                // Update progress bar
                 const barFill = card.querySelector('.score-bar-fill');
                 if (barFill) {
                     barFill.style.width = `${score}%`;
                 }
                 
-                // Update explanation in data attribute if available
                 if (data.summary) {
                     card.setAttribute('data-explanation', data.summary);
                 }
@@ -138,19 +129,16 @@ function updateIndividualScores(results) {
 }
 
 function updateSummary(results) {
-    // Update central claim
     const centralClaimElement = document.querySelector('.central-claim p');
     if (centralClaimElement && results.metadata && results.metadata.central_claim) {
         centralClaimElement.textContent = results.metadata.central_claim;
     }
     
-    // Update article summary
     const summaryContent = document.querySelector('.summary-content p');
     if (summaryContent && results.metadata && results.metadata.article_summary) {
         summaryContent.textContent = results.metadata.article_summary;
     }
     
-    // Update badges based on results
     updateBadges(results);
 }
 
@@ -159,13 +147,10 @@ function updateBadges(results) {
     
     if (!badgesContainer) return;
     
-    // Clear existing badges
     badgesContainer.innerHTML = '';
     
-    // Add badges based on analysis
     const badges = [];
     
-    // Bias badge
     if (results.bias_check) {
         const biasScore = results.bias_check.overall_score;
         if (biasScore >= 70) {
@@ -177,7 +162,6 @@ function updateBadges(results) {
         }
     }
     
-    // Evidence badge
     if (results.evidence_check) {
         const evidenceScore = results.evidence_check.overall_score;
         if (evidenceScore >= 70) {
@@ -187,7 +171,6 @@ function updateBadges(results) {
         }
     }
     
-    // Relevancy badge
     if (results.relevancy_check) {
         const relevancyScore = results.relevancy_check.overall_score;
         if (relevancyScore >= 70) {
@@ -197,7 +180,6 @@ function updateBadges(results) {
         }
     }
     
-    // Create badge elements
     badges.forEach(badge => {
         const badgeEl = document.createElement('span');
         badgeEl.className = `badge badge-${badge.type}`;
@@ -206,135 +188,360 @@ function updateBadges(results) {
     });
 }
 
-// Export functionality
-function exportReport() {
-    const resultsJson = sessionStorage.getItem('analysisResult');
-    if (!resultsJson) return;
+function hideUsefulnessScore() {
+    const usefulnessCard = document.querySelector('[data-score-type="Usefulness Check"]');
+    if (usefulnessCard) {
+        usefulnessCard.style.display = 'none';
+    }
+}
+
+// ============================================
+// DROPDOWN MENUS
+// ============================================
+
+function initializeDropdowns() {
+    const exportBtn = document.getElementById('export-btn');
+    const exportMenu = document.getElementById('export-menu');
+    const shareBtn = document.getElementById('share-btn');
+    const shareMenu = document.getElementById('share-menu');
+
+    exportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportMenu.classList.toggle('active');
+        shareMenu.classList.remove('active');
+    });
+
+    shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        shareMenu.classList.toggle('active');
+        exportMenu.classList.remove('active');
+    });
+
+    document.querySelectorAll('#export-menu .dropdown-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const format = e.currentTarget.dataset.format;
+            exportMenu.classList.remove('active');
+            
+            if (format === 'pdf') {
+                exportAsPDF();
+            } else if (format === 'json') {
+                exportAsJSON();
+            } else if (format === 'txt') {
+                exportAsText();
+            }
+        });
+    });
+
+    document.querySelectorAll('#share-menu .dropdown-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const shareType = e.currentTarget.dataset.share;
+            shareMenu.classList.remove('active');
+            
+            if (shareType === 'link') {
+                copyLinkToClipboard();
+            } else if (shareType === 'email') {
+                shareViaEmail();
+            } else if (shareType === 'twitter') {
+                shareOnTwitter();
+            } else if (shareType === 'clipboard') {
+                copySummaryToClipboard();
+            }
+        });
+    });
+
+    document.addEventListener('click', () => {
+        exportMenu?.classList.remove('active');
+        shareMenu?.classList.remove('active');
+    });
+
+    [exportMenu, shareMenu].forEach(menu => {
+        menu?.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    });
+}
+
+// ============================================
+// EXPORT FUNCTIONS
+// ============================================
+
+function exportAsJSON() {
+    const data = sessionStorage.getItem('analysisResult');
+    if (!data) {
+        showNotification('No analysis data found', 'error');
+        return;
+    }
     
-    const results = JSON.parse(resultsJson);
-    const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+    const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'credibility-analysis.json';
+    a.download = `clarity-analysis-${Date.now()}.json`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    showNotification('JSON report downloaded successfully', 'info');
 }
 
-// Share functionality
-function shareAnalysis() {
-    const resultsJson = sessionStorage.getItem('analysisResult');
-    if (!resultsJson) return;
+function exportAsText() {
+    const data = JSON.parse(sessionStorage.getItem('analysisResult'));
+    if (!data) {
+        showNotification('No analysis data found', 'error');
+        return;
+    }
     
-    const results = JSON.parse(resultsJson);
-    const shareText = `Article Credibility Analysis\n\nOverall Score: ${results.overall_credibility}/100\n\nAnalyzed with Article Credibility Analyzer`;
+    let textContent = `CLARITY ANALYSIS REPORT\n`;
+    textContent += `Generated: ${new Date().toLocaleString()}\n`;
+    textContent += `${'='.repeat(50)}\n\n`;
     
-    if (navigator.share) {
-        navigator.share({
-            title: 'Article Credibility Analysis',
-            text: shareText,
-        }).catch(err => console.log('Error sharing:', err));
+    textContent += `ARTICLE METADATA\n`;
+    textContent += `Title: ${data.metadata?.title || 'N/A'}\n`;
+    textContent += `Author: ${data.metadata?.author || 'N/A'}\n`;
+    textContent += `Date: ${data.metadata?.date || 'N/A'}\n\n`;
+    
+    textContent += `OVERALL CREDIBILITY SCORE: ${data.overall_credibility}%\n`;
+    textContent += `${'='.repeat(50)}\n\n`;
+    
+    textContent += `BIAS CHECK (${data.bias_check?.overall_score}%)\n`;
+    textContent += `${data.bias_check?.summary}\n\n`;
+    
+    textContent += `EVIDENCE CHECK (${data.evidence_check?.overall_score}%)\n`;
+    textContent += `${data.evidence_check?.summary}\n\n`;
+    
+    textContent += `AUTHOR CREDIBILITY (${data.author_credibility?.overall_score}%)\n`;
+    textContent += `${data.author_credibility?.summary}\n\n`;
+    
+    textContent += `CITATION CHECK (${data.citation_check?.overall_score}%)\n`;
+    textContent += `${data.citation_check?.summary}\n\n`;
+    
+    textContent += `RELEVANCY CHECK (${data.relevancy_check?.overall_score}%)\n`;
+    textContent += `${data.relevancy_check?.summary}\n\n`;
+    
+    if (data.hasPurpose) {
+        textContent += `USEFULNESS CHECK (${data.usefulness_check?.overall_score}%)\n`;
+        textContent += `${data.usefulness_check?.summary}\n`;
+    }
+    
+    const blob = new Blob([textContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clarity-analysis-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('Text report downloaded successfully', 'info');
+}
+
+function exportAsPDF() {
+    const data = JSON.parse(sessionStorage.getItem('analysisResult'));
+    if (!data) {
+        showNotification('No analysis data found', 'error');
+        return;
+    }
+    
+    showNotification('Generating PDF...', 'info');
+    
+    if (typeof jsPDF === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = () => generatePDF(data);
+        document.head.appendChild(script);
     } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard.writeText(shareText).then(() => {
-            alert('Analysis summary copied to clipboard!');
-        });
+        generatePDF(data);
     }
 }
 
-// Attach event listeners to action buttons
-document.addEventListener('DOMContentLoaded', function() {
-    const exportBtn = document.querySelector('.btn-primary');
-    const shareBtn = document.querySelector('.btn-secondary');
+function generatePDF(data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
     
-    if (exportBtn) {
-        exportBtn.addEventListener('click', exportReport);
-    }
+    let y = 20;
+    const lineHeight = 7;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 20;
     
-    if (shareBtn) {
-        shareBtn.addEventListener('click', shareAnalysis);
-    }
-});
-
-// ============================================
-// SCORE MODAL FUNCTIONALITY
-// ============================================
-
-document.addEventListener('DOMContentLoaded', function() {
-  const modal = document.getElementById('score-modal');
-  const modalOverlay = modal?.querySelector('.modal-overlay');
-  const modalClose = modal?.querySelector('.modal-close');
-  const modalTitle = document.getElementById('modal-title');
-  const modalScoreValue = document.getElementById('modal-score-value');
-  const modalPie = document.getElementById('modal-pie');
-  const modalExplanation = document.getElementById('modal-explanation');
-  const scoreCards = document.querySelectorAll('.score-card');
-
-  // Open modal when score card is clicked
-  scoreCards.forEach(card => {
-    card.addEventListener('click', function() {
-      const scoreType = this.getAttribute('data-score-type');
-      const explanation = this.getAttribute('data-explanation');
-      const scoreValue = this.querySelector('.pie').getAttribute('data-score');
-
-      if (modal && scoreType && explanation && scoreValue) {
-        // Update modal content
-        modalTitle.textContent = scoreType;
-        modalScoreValue.textContent = scoreValue;
-        modalPie.style.setProperty('--p', scoreValue);
-        modalExplanation.textContent = explanation;
-
-        // Show modal
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-
-        // Animate pie chart
-        setTimeout(() => {
-          animateModalPie(scoreValue);
-        }, 100);
-      }
-    });
-  });
-
-  // Close modal when clicking overlay
-  if (modalOverlay) {
-    modalOverlay.addEventListener('click', closeModal);
-  }
-
-  // Close modal when clicking close button
-  if (modalClose) {
-    modalClose.addEventListener('click', closeModal);
-  }
-
-  // Close modal on Escape key
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && modal?.classList.contains('active')) {
-      closeModal();
-    }
-  });
-
-  function closeModal() {
-    if (modal) {
-      modal.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-  }
-
-  function animateModalPie(targetScore) {
-    let currentScore = 0;
-    const duration = 800;
-    const increment = targetScore / (duration / 16);
-
-    const animate = () => {
-      currentScore += increment;
-      if (currentScore < targetScore) {
-        modalPie.style.setProperty('--p', Math.round(currentScore));
-        requestAnimationFrame(animate);
-      } else {
-        modalPie.style.setProperty('--p', targetScore);
-      }
+    const addText = (text, fontSize = 12, isBold = false) => {
+        if (y > pageHeight - margin) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+        const lines = doc.splitTextToSize(text, 170);
+        doc.text(lines, 20, y);
+        y += lines.length * lineHeight;
     };
+    
+    addText('CLARITY ANALYSIS REPORT', 18, true);
+    y += 5;
+    addText(`Generated: ${new Date().toLocaleString()}`, 10);
+    y += 10;
+    
+    addText('ARTICLE METADATA', 14, true);
+    y += 3;
+    addText(`Title: ${data.metadata?.title || 'N/A'}`, 11);
+    addText(`Author: ${data.metadata?.author || 'N/A'}`, 11);
+    addText(`Date: ${data.metadata?.date || 'N/A'}`, 11);
+    y += 10;
+    
+    addText(`OVERALL CREDIBILITY SCORE: ${data.overall_credibility}%`, 16, true);
+    y += 10;
+    
+    addText(`Bias Check (${data.bias_check?.overall_score}%)`, 14, true);
+    y += 3;
+    addText(data.bias_check?.summary || 'N/A', 11);
+    y += 10;
+    
+    addText(`Evidence Check (${data.evidence_check?.overall_score}%)`, 14, true);
+    y += 3;
+    addText(data.evidence_check?.summary || 'N/A', 11);
+    y += 10;
+    
+    addText(`Author Credibility (${data.author_credibility?.overall_score}%)`, 14, true);
+    y += 3;
+    addText(data.author_credibility?.summary || 'N/A', 11);
+    y += 10;
+    
+    addText(`Citation Check (${data.citation_check?.overall_score}%)`, 14, true);
+    y += 3;
+    addText(data.citation_check?.summary || 'N/A', 11);
+    y += 10;
+    
+    addText(`Relevancy Check (${data.relevancy_check?.overall_score}%)`, 14, true);
+    y += 3;
+    addText(data.relevancy_check?.summary || 'N/A', 11);
+    y += 10;
+    
+    if (data.hasPurpose) {
+        addText(`Usefulness Check (${data.usefulness_check?.overall_score}%)`, 14, true);
+        y += 3;
+        addText(data.usefulness_check?.summary || 'N/A', 11);
+    }
+    
+    doc.save(`clarity-analysis-${Date.now()}.pdf`);
+    showNotification('PDF report downloaded successfully', 'info');
+}
 
-    animate();
-  }
-});
+// ============================================
+// SHARE FUNCTIONS
+// ============================================
+
+function copyLinkToClipboard() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+        showNotification('Link copied to clipboard!', 'info');
+    }).catch(() => {
+        showNotification('Failed to copy link', 'error');
+    });
+}
+
+function shareViaEmail() {
+    const data = JSON.parse(sessionStorage.getItem('analysisResult'));
+    const subject = encodeURIComponent('Article Credibility Analysis');
+    const body = encodeURIComponent(
+        `I analyzed "${data.metadata?.title || 'an article'}" and got an overall credibility score of ${data.overall_credibility}%.\n\nCheck out the full analysis here: ${window.location.href}`
+    );
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+function shareOnTwitter() {
+    const data = JSON.parse(sessionStorage.getItem('analysisResult'));
+    const text = encodeURIComponent(
+        `I just analyzed "${data.metadata?.title || 'an article'}" with Clarity and got a credibility score of ${data.overall_credibility}%!`
+    );
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(window.location.href)}`, '_blank');
+}
+
+function copySummaryToClipboard() {
+    const data = JSON.parse(sessionStorage.getItem('analysisResult'));
+    const summary = `Article Credibility Analysis\n\nTitle: ${data.metadata?.title || 'N/A'}\nOverall Score: ${data.overall_credibility}%\n\nBias: ${data.bias_check?.overall_score}%\nEvidence: ${data.evidence_check?.overall_score}%\nAuthor: ${data.author_credibility?.overall_score}%`;
+    
+    navigator.clipboard.writeText(summary).then(() => {
+        showNotification('Summary copied to clipboard!', 'info');
+    }).catch(() => {
+        showNotification('Failed to copy summary', 'error');
+    });
+}
+
+// ============================================
+// SCORE MODAL
+// ============================================
+
+function initializeScoreModal() {
+    const modal = document.getElementById('score-modal');
+    const modalOverlay = modal?.querySelector('.modal-overlay');
+    const modalClose = modal?.querySelector('.modal-close');
+    const modalTitle = document.getElementById('modal-title');
+    const modalScoreValue = document.getElementById('modal-score-value');
+    const modalPie = document.getElementById('modal-pie');
+    const modalExplanation = document.getElementById('modal-explanation');
+    const scoreCards = document.querySelectorAll('.score-card');
+
+    scoreCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const scoreType = this.getAttribute('data-score-type');
+            const explanation = this.getAttribute('data-explanation');
+            const scoreValue = this.querySelector('.pie').getAttribute('data-score');
+
+            if (modal && scoreType && explanation && scoreValue) {
+                modalTitle.textContent = scoreType;
+                modalScoreValue.textContent = scoreValue;
+                modalPie.style.setProperty('--p', scoreValue);
+                modalExplanation.textContent = explanation;
+
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                setTimeout(() => {
+                    animateModalPie(scoreValue);
+                }, 100);
+            }
+        });
+    });
+
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', closeModal);
+    }
+
+    if (modalClose) {
+        modalClose.addEventListener('click', closeModal);
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal?.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    function closeModal() {
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function animateModalPie(targetScore) {
+        let currentScore = 0;
+        const duration = 800;
+        const increment = targetScore / (duration / 16);
+
+        const animate = () => {
+            currentScore += increment;
+            if (currentScore < targetScore) {
+                modalPie.style.setProperty('--p', Math.round(currentScore));
+                requestAnimationFrame(animate);
+            } else {
+                modalPie.style.setProperty('--p', targetScore);
+            }
+        };
+
+        animate();
+    }
+}
