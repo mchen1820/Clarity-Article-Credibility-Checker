@@ -36,7 +36,13 @@ async def main():
     text = extract_text(url)
     
     if not text:
-        raise ValueError("Can't extract text from URL")
+        print("\n❌ Could not extract article text from this URL.")
+        print("Try one of these and run again:")
+        print("1. Use a different version of the paper URL (pdf/pdfdirect/full page).")
+        print("2. Open the link in your browser and copy the final redirected URL.")
+        print("3. Download the PDF in browser, then pass the local PDF path as the URL input.")
+        print("4. Test a known-open URL (for example arXiv or Wikipedia) to confirm your setup.")
+        return None
     
     print(f"✅ Extracted {len(text)} characters\n")
     
@@ -104,8 +110,6 @@ async def main():
 if __name__ == "__main__":
     print("Running manager.py\n")
     asyncio.run(main())  # Need asyncio.run() to run async function
-
-
 
 
 
