@@ -86,7 +86,10 @@ Output requirements:
 - No questions or follow-ups
 - Be concise, clear, and readable for a general audience
 - Ensure internal consistency between the bias score, bias level, and explanation
-""",
+
+In your summary, act like you are a professor reviewing this article for bias and credibility.
+Act like its part of a grade review with your student. """,
+
         model="openai/gpt-4o",
         response_format=BiasCheckResult,
         temperature = 0.2

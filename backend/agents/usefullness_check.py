@@ -61,7 +61,10 @@ async def usefulness_check_agent(client: AsyncDedalus, article:str, research_top
         9. Provide practical recommendations for how to use this article in their research.
         
         Be honest. If the article is only tangentially related or not useful, say so clearly.
-        Focus on actionable insights the researcher can use.""",
+        Focus on actionable insights the researcher can use.
+
+        In your summary, act like you are a professor reviewing this article for the usefulness of this article relating to the student's topic.
+        Act like its part of a grade review with your student. """,
         model="openai/gpt-4o",
         response_format=UsefulnessResult,
         temperature = 0.2

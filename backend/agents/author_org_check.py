@@ -64,11 +64,18 @@ async def author_check_agent(client: AsyncDedalus, article:str) -> AuthorResult:
 		9. Provide recommendations for reliable articles with similar topics
 		10. Compute an overall author/organization score from 0 to 100. Start from a base score of 0 and increase
 			based on high relevant expertise score and high reliability. If the author is reliable, then also 
-			increase with higher number of articles.""",
+			increase with higher number of articles.
+
+		In your summary, act like you are a professor reviewing this article for author credibility.
+		Act like its part of a grade review with your student. """,
+
 		model="openai/gpt-4o",
 		response_format=AuthorResult,
 		temperature = 0.2
 		)
+	
+		
+	
 	
 	author_result = AuthorResult.model_validate_json(result.final_output)
 	author_result.confidence_score = author_result.expertise_alignment_score - 10 * len(author_result.bias_indicators)

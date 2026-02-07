@@ -22,7 +22,8 @@ async def claim_agent(client, article:str) -> claim_result:
         The article can be found in:
         "{article}" 
 
-        Pretend that you are a journalist who has just read the article. What is the central claim of the article?
+        Pretend that you are a journalist who has just read the article. 
+        What is the central claim of the article? Store this in the summary section of the response
 
        
        
