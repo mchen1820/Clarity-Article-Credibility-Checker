@@ -22,7 +22,6 @@ from text_extractor import extract_text
 from manager import manager_agent, ManagerSynthesisResult, manager_synthesis_agent
 
 # Variables
-load_dotenv(find_dotenv())
 dedalus_api_key = os.getenv('DEDALUS_API_KEY')
 
 
