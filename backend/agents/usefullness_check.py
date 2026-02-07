@@ -35,14 +35,16 @@ class UsefulnessResult(BaseAgentResult):
     recommendations: List[str] = Field(default_factory=list, description="Suggestions for how to use this article in the research")
 
 
-async def usefulness_check_agent(client: AsyncDedalus, url: str, research_topic: str) -> UsefulnessResult:
+async def usefulness_check_agent(client: AsyncDedalus, article:str, research_topic:str) -> UsefulnessResult:
     """Agent that evaluates how useful an article is for a given research topic"""
     runner = DedalusRunner(client)
     result = await runner.run(
-        input=f"""Analyze the article at: {url}
+        input=f"""The article can be found in:
+        "{article}"
 
         The user is researching the following topic:
         "{research_topic}"
+
 
         Evaluate how useful this article is for their research:
         1. Assess overall alignment between the article content and the research topic.
@@ -61,7 +63,6 @@ async def usefulness_check_agent(client: AsyncDedalus, url: str, research_topic:
         Be honest. If the article is only tangentially related or not useful, say so clearly.
         Focus on actionable insights the researcher can use.""",
         model="openai/gpt-4o",
-        mcp_servers=["firecrawl"],
         response_format=UsefulnessResult,
         temperature = 0.2
     )

@@ -36,11 +36,20 @@ class AuthorResult(BaseAgentResult):
 	recommendations: List[str] = Field(default_factory=list)
 
 
-async def author_check_agent(client: AsyncDedalus, url: str) -> AuthorResult:
+async def author_check_agent(client: AsyncDedalus, article:str) -> AuthorResult:
 	runner = DedalusRunner(client)
 	result = await runner.run(
-		input=f"""Analyze the author and source credibility of the article at: {url}
+		input=f""" 
+
+		The article can be found in:
+        "{article}"
+
+
+
+		
 		If URL is none, analyze the citations in the provided text. Else, ignore the input text. 
+
+
 
 		Perform a thorough author credibility analysis:
 
@@ -57,7 +66,6 @@ async def author_check_agent(client: AsyncDedalus, url: str) -> AuthorResult:
 			based on high relevant expertise score and high reliability. If the author is reliable, then also 
 			increase with higher number of articles.""",
 		model="openai/gpt-4o",
-		mcp_servers=["firecrawl"],
 		response_format=AuthorResult,
 		temperature = 0.2
 		)
@@ -68,40 +76,40 @@ async def author_check_agent(client: AsyncDedalus, url: str) -> AuthorResult:
 	return author_result
 
 
-async def main():
-	url = input("Provide URL of academic paper to check citations: ")
-	client = AsyncDedalus()
-	result = await author_check_agent(client, url)
+# async def main():
+# 	url = input("Provide URL of academic paper to check citations: ")
+# 	client = AsyncDedalus()
+# 	result = await author_check_agent(client, url)
      
-	print("\n Author Check Results")
-	print(f"   Overall Score: {result.overall_score}/100")
-	print(f"   Confidence: {result.confidence_score}/100")
+# 	print("\n Author Check Results")
+# 	print(f"   Overall Score: {result.overall_score}/100")
+# 	print(f"   Confidence: {result.confidence_score}/100")
 	
-	if result.expertise_alignment_score:
-		print(f"	Expertise Alignment: {result.expertise_alignment_score}")
+# 	if result.expertise_alignment_score:
+# 		print(f"	Expertise Alignment: {result.expertise_alignment_score}")
 
-	if result.author_name:
-		print(f"   Author: {result.author_name}")
-	if result.organization:
-		print(f"   Organization: {result.organization}")
+# 	if result.author_name:
+# 		print(f"   Author: {result.author_name}")
+# 	if result.organization:
+# 		print(f"   Organization: {result.organization}")
 
-	print(f"   Total Articles Found: {result.total_articles_found}")
+# 	print(f"   Total Articles Found: {result.total_articles_found}")
 
-	if result.reliability_score_estimate is not None:
-		print(f"   Estimated Reliability: {result.reliability_score_estimate}/100")
+# 	if result.reliability_score_estimate is not None:
+# 		print(f"   Estimated Reliability: {result.reliability_score_estimate}/100")
 
-	if result.bias_indicators:
-		print(f"   Bias Indicators: {len(result.bias_indicators)}")
+# 	if result.bias_indicators:
+# 		print(f"   Bias Indicators: {len(result.bias_indicators)}")
 
-	print(f"\n   Summary: {result.summary}")
+# 	print(f"\n   Summary: {result.summary}")
 
-	if result.recommendations:
-		print("\n   Recommendations:")
-		for rec in result.recommendations:
-			print(f"     • {rec}")
+# 	if result.recommendations:
+# 		print("\n   Recommendations:")
+# 		for rec in result.recommendations:
+# 			print(f"     • {rec}")
 
-	return result
+# 	return result
 
-if __name__ == "__main__":
-    print("Running author_org_check.py")
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     print("Running author_org_check.py")
+#     asyncio.run(main())

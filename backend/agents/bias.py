@@ -22,13 +22,13 @@ class BiasCheckResult(BaseAgentResult):
     affected_topics: List[str] = Field(default_factory=list)
     recommendations: List[str] = Field(default_factory=list)
 
-async def bias_check_agent(client: AsyncDedalus, url: str) -> BiasCheckResult:
+async def bias_check_agent(client: AsyncDedalus, article:str) -> BiasCheckResult:
     """Agent that analyzes linguistic bias in an article"""
     runner = DedalusRunner(client)
     result = await runner.run(
-        input=f"""
-Analyze the article at the following URL for linguistic bias:
-{url}If URL is none, analyze the citations in the provided text. Else, ignore the input text. 
+        input=f""" 
+
+
 
 
 Perform a structured bias analysis using ONLY the article text.
@@ -100,7 +100,6 @@ Output requirements:
 - Ensure internal consistency between the bias score, bias level, and explanation
 """,
         model="openai/gpt-4o",
-        mcp_servers=["firecrawl"],
         response_format=BiasCheckResult,
         temperature = 0.2
     )

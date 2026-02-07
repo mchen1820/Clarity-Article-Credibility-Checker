@@ -13,14 +13,21 @@ dedalus_api_key = os.getenv('DEDALUS_API_KEY')
 class claim_result(BaseAgentResult):
     central_claim: str = Field(..., description="One sentence claim that captures the main point of the article")
 
-async def claim_agent(client, url: str) -> claim_result:
-    """Agent to analyze a URL and return the central claim"""
+async def claim_agent(client, article:str) -> claim_result:
+    "agent to analyze the article and return central claim"
     runner = DedalusRunner(client)
     result = await runner.run(
-        input=f"""Analyze the following URL for the following information: {url}
-        If URL is none, analyze the citations in the provided text. Else, ignore the input text. 
+        input=f"""
+
+        The article can be found in:
+        "{article}" 
 
         Pretend that you are a journalist who has just read the article. What is the central claim of the article?
+
+       
+       
+
+
         1. Extract the central claim of the webpage in one two to sentences. 
             Store this information in the central claim field of the result object.
             Format your response in markdown with clear sections.
@@ -38,33 +45,9 @@ async def claim_agent(client, url: str) -> claim_result:
            For overall score, just rate it None. it is not necessary.
         """,
         model="openai/gpt-4o",
-        mcp_servers=["firecrawl", "tsion/sequential-thinking"],
         response_format=claim_result,
         temperature = 0.2
     )
     
     # Parse the JSON output into your Pydantic model
     return claim_result.model_validate_json(result.final_output)
-
-# async def main():
-#     url = input("Provide URL to analyze: ")
-#     client = AsyncDedalus()
-    
-#     # Run the agent
-#     result = await claim_agent(client, url)  
-    
-#     # Print results in clean format
-#     print("Claim Analysis Results")
-#     print(f"\n📍 Central Claim:")
-#     print(f"   {result.central_claim}")
-#     print(f" Summary:")
-#     print(f"   {result.summary}")
-#     print(f" Scores:")
-#     print(f"   Overall Score: {result.overall_score}/100")
-#     print(f"   Confidence Score: {result.confidence_score}/100")
-    
-#     return result
-
-# if __name__ == "__main__":
-#     print("Running claim_check.py")
-#     asyncio.run(main())

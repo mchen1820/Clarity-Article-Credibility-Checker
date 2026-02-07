@@ -27,11 +27,15 @@ class CitationResult(BaseAgentResult):
     recommendations: List[str] = Field(default_factory=list)
 
 
-async def citation_check_agent(client: AsyncDedalus, url: str) -> CitationResult:
+async def citation_check_agent(client: AsyncDedalus, article: str ) -> CitationResult:
     """Agent that analyzes citations/references in an academic paper"""
     runner = DedalusRunner(client)
     result = await runner.run(
-        input=f"""Analyze the citations and references in the academic paper at: {url}
+        input=f""" 
+        
+        The article can be found in:
+        "{article}"
+         
 
         Perform a thorough citation check:
         1. Count all citations/references in the paper.
@@ -44,7 +48,6 @@ async def citation_check_agent(client: AsyncDedalus, url: str) -> CitationResult
         8. Estimate the average age of cited sources.
         9. Provide recommendations for improving the citation quality.""",
         model="openai/gpt-4o",
-        mcp_servers=["firecrawl"],
         response_format=CitationResult,
         temperature = 0.2
     )

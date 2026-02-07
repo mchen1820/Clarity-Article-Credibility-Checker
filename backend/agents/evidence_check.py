@@ -31,14 +31,16 @@ class EvidenceResult(BaseAgentResult):
     recommendations: List[str] = Field(default_factory=list, description="Suggestions for strengthening the evidence")
 
 
-async def evidence_check_agent(client: AsyncDedalus, url: str, central_claim: str) -> EvidenceResult:
+async def evidence_check_agent(client: AsyncDedalus, article: str, central_claim:str) -> EvidenceResult:
     """Agent that evaluates how well the evidence in a paper supports its central claim"""
     runner = DedalusRunner(client)
     result = await runner.run(
-        input=f"""Analyze the academic paper at: {url}
+        input=f"""
 
-        The central claim of this paper has been identified as:
-        "{central_claim}"
+        The article can be found in:
+        "{article}"
+        The central_claim can be found in "{central_claim}
+
 
         Perform a thorough evidence evaluation:
         1. Identify all key pieces of evidence presented in the paper.
@@ -54,7 +56,6 @@ async def evidence_check_agent(client: AsyncDedalus, url: str, central_claim: st
         Be critical and thorough. Look for unsupported assertions, cherry-picked data,
         logical fallacies, and missing counterarguments.""",
         model="openai/gpt-4o",
-        mcp_servers=["firecrawl"],
         response_format=EvidenceResult,
         temperature = 0.2
     )
